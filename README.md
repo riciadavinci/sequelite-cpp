@@ -4,10 +4,14 @@
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
 [![CMake](https://img.shields.io/badge/CMake-3.20%2B-064F8C.svg?logo=cmake)](https://cmake.org/)
 [![Build Status](https://github.com/riciadavinci/sequelite-cpp/actions/workflows/ci.yaml/badge.svg)](https://github.com/riciadavinci/sequelite-cpp/actions)
-[![codecov](https://codecov.io/gh/riciadavinci/sequelite-cpp/graph/badge.svg?token=O7VO610R9Q)](https://codecov.io/gh/riciadavinci/sequelite-cpp)
+[![codecov](https://codecov.io/gh/riciadavinci/sequelite-cpp/graph/badge.svg?token=)](https://codecov.io/gh/riciadavinci/sequelite-cpp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## 1. Overview
+
+_**sequelite-cpp**_ is a lightweight, modern _C++20_ wrapper for _SQLite3_ designed for safety, performance, and clean integration. By leveraging RAII, explicit move-only semantics, and an exception-free design with `std::optional`, it provides a robust, type-safe interface for all database operations. Furthermore, it employs the _PIMPL idiom_ to insulate consumer compilation units from _SQLite's C headers_, ensuring rapid build times and clean dependency boundaries.
+
+<br>
 
 ## 2. Quick Start
 
@@ -250,7 +254,7 @@ target_link_libraries(your_project_target PRIVATE sequelite::sequelite)
 
 ## 7. API Overview
 
-### 7.1 SqliteDatabase
+### 7.1 Class: `SqliteDatabase`
 
 ```c++
 namespace sequelite {
@@ -278,7 +282,7 @@ public:
 
 <p align="right"><sub>[&nbsp;<a href="#sequelite-cpp">Back to Top</a> &nbsp;•&nbsp; <a href="#table-of-contents">Table of Contents</a>&nbsp;]</sub></p>
 
-### 7.2 SqliteStatement
+### 7.2 Class: `SqliteStatement`
 
 ```c++
 namespace sequelite {
@@ -322,7 +326,7 @@ public:
 <p align="right"><sub>[&nbsp;<a href="#sequelite-cpp">Back to Top</a> &nbsp;•&nbsp; <a href="#table-of-contents">Table of Contents</a>&nbsp;]</sub></p>
 
 ## 8. Error Handling
-`sequelite-cpp` avoids exceptions, utilizing a predictable two-tier error paradigm:
+_**sequelite-cpp**_ avoids exceptions, utilizing a predictable two-tier error paradigm:
 
 1. **Creation Guards:** Factory functions that construct core state - such as `Database::create(std::string_view)` and `Statement::create(Database&, std::string_view)` - return an `std::optional<Database>` & `std::optional<Statement>` respectively, yielding `std::nullopt` on failure.
 
