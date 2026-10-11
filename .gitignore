@@ -1,0 +1,13 @@
+**/.vscode/*
+**/build/*
+**/venv/*
+**/__pycache__/*
+**/dependencies/*
+**/deps/*
+**/generated/*
+
+**/*.pyc
+**/*.exe
+**/*.db
+**/*.sqlite
+
