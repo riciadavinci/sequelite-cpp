@@ -33,7 +33,10 @@ Statement::operator bool() const {
 
 // sequelite::Statement factory:
 std::optional<Statement> Statement::create(Database& db, std::string_view sql_query) {
-    if (!db || sql_query.empty()) {
+    if (!db) {
+        return std::nullopt;
+    }
+    if (sql_query.empty()) {
         return std::nullopt;
     }
 

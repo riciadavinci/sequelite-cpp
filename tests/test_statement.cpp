@@ -164,4 +164,51 @@ TEST_F(StatementBindingTest, NullBinding) {
     EXPECT_TRUE(stmt->bind_null(1).ok());
 }
 
+
+// Binding failing:
+
+TEST_F(StatementBindingTest, IntegerBindingIndexTooLarge) {
+    auto stmt = Statement::create(*db, "INSERT INTO items (val_int) VALUES (?);");
+    ASSERT_TRUE(stmt);
+    EXPECT_FALSE(stmt->bind(2, 42).ok());
+}
+
+TEST_F(StatementBindingTest, Int64BindingIndexTooLarge) {
+    auto stmt = Statement::create(*db, "INSERT INTO items (val_int64) VALUES (?);");
+    ASSERT_TRUE(stmt);
+    int64_t large_value = 9223372036854775807LL;
+    EXPECT_FALSE(stmt->bind(2, large_value).ok());
+}
+
+TEST_F(StatementBindingTest, BooleanBindingIndexTooLarge) {
+    auto stmt = Statement::create(*db, "INSERT INTO items (val_bool) VALUES (?);");
+    ASSERT_TRUE(stmt);
+    EXPECT_FALSE(stmt->bind(2, true).ok());
+    EXPECT_FALSE(stmt->bind(2, false).ok());
+}
+
+TEST_F(StatementBindingTest, DoubleBindingIndexTooLarge) {
+    auto stmt = Statement::create(*db, "INSERT INTO items (val_double) VALUES (?);");
+    ASSERT_TRUE(stmt);
+    EXPECT_FALSE(stmt->bind(2, 3.14159).ok());
+}
+
+TEST_F(StatementBindingTest, TextBindingTransientIndexTooLarge) {
+    auto stmt = Statement::create(*db, "INSERT INTO items (val_text) VALUES (?);");
+    ASSERT_TRUE(stmt);
+    EXPECT_FALSE(stmt->bind(2, std::string("hello"), sequelite::OwnershipType::Transient).ok());
+}
+
+TEST_F(StatementBindingTest, TextBindingStaticIndexTooLarge) {
+    auto stmt = Statement::create(*db, "INSERT INTO items (val_text) VALUES (?);");
+    ASSERT_TRUE(stmt);
+    EXPECT_FALSE(stmt->bind(2, "world", sequelite::OwnershipType::Static).ok());
+}
+
+TEST_F(StatementBindingTest, NullBindingIndexTooLarge) {
+    auto stmt = Statement::create(*db, "INSERT INTO items (val_text) VALUES (?);");
+    ASSERT_TRUE(stmt);
+    EXPECT_FALSE(stmt->bind_null(2).ok());
+}
+
 }; // namespace sequelite::testing
