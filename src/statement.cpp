@@ -58,6 +58,16 @@ BindResult Statement::bind(int index, int data) {
     return BindResult::success();
 }
 
+BindResult Statement::bind(int index, int64_t data) {
+    if (index <= 0) { return BindResult::fail("Index value must be > 0"); }
+    if (!m_impl->db) { return BindResult::fail("Database handle is null"); }
+    if (!m_impl->stmt) { return BindResult::fail("Statement handle is null"); }
+    if (sqlite3_bind_int64(m_impl->stmt, index, data) != SQLITE_OK) {
+        return BindResult::fail(sqlite3_errmsg(m_impl->db));
+    }
+    return BindResult::success();
+}
+
 BindResult Statement::bind(int index, bool data) {
     if (index <= 0) { return BindResult::fail("Index value must be > 0"); }
     if (!m_impl->db) { return BindResult::fail("Database handle is null"); }
