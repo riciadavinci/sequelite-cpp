@@ -26,6 +26,11 @@ Statement::~Statement() = default;
 Statement::Statement(Statement&&) noexcept = default;
 Statement& Statement::operator=(Statement&&) noexcept = default;
 
+Statement::operator bool() const {
+    return m_impl && (m_impl->stmt != nullptr);
+}
+
+
 // sequelite::Statement factory:
 std::optional<Statement> Statement::create(Database& db, std::string_view sql_query) {
     if (!db || sql_query.empty()) {
