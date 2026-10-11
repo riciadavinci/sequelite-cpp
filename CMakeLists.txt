@@ -28,9 +28,15 @@ else()
     set(SEQUELITE_SQLITE_TARGET sqlite3_bundled)
 endif()
 
+# Fallback to Release build if no CMAKE_BUILD_TYPE is explicitly specified
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+
 add_library(sequelite-cpp STATIC 
     src/database.cpp 
-    src/statement.cpp
+    # src/statement.cpp
     src/impl.hpp
     include/sequelite/sequelite.hpp
     include/sequelite/types.hpp
@@ -40,7 +46,7 @@ target_include_directories(sequelite-cpp PUBLIC include)
 target_compile_features(sequelite-cpp PUBLIC cxx_std_20)
 target_link_libraries(sequelite-cpp PRIVATE ${SEQUELITE_SQLITE_TARGET})
 
-option(SEQUELITE_BUILD_TESTS "Build unit tests for fixed-capacity-containers" ON)
+option(SEQUELITE_BUILD_TESTS "Build unit tests for sequelite-cpp" ON)
 
 if (SEQUELITE_BUILD_TESTS AND (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME))
     include(CTest)

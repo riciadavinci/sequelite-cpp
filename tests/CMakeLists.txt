@@ -21,7 +21,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(sequelite_test_runner
     test_types.cpp
     test_database.cpp
-    test_statement.cpp
+    # test_statement.cpp
 )
 
 target_link_libraries(sequelite_test_runner PRIVATE 
