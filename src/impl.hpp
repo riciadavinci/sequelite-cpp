@@ -28,8 +28,7 @@ struct Statement::Impl {
     ~Impl() {
         if (stmt) {
             sqlite3_finalize(stmt);
-            // Coverage Fix (remove the '//' from below on dedicated branch):
-            // stmt = nullptr;
+            stmt = nullptr;
         }
     }
 };
