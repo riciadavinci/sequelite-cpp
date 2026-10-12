@@ -152,7 +152,7 @@ TEST(DatabaseExecutionTest, NullDatabaseHandleFailure) {
     Database db_moved_to(std::move(db));
     ASSERT_TRUE(db_moved_to);
 
-    auto result = db.execute("CREATE TABLE test (id INT);");
+    auto result = db.execute("CREATE TABLE test (id INT);"); // NOLINT(bugprone-use-after-move)
     EXPECT_FALSE(result.ok());
     EXPECT_FALSE(result.message.empty());
 }
