@@ -15,6 +15,8 @@ struct Database::Impl {
     ~Impl() {
         if (db) {
             sqlite3_close(db);
+            // Coverage Fix (remove the '//' from below on dedicated branch):
+            // db = nullptr;
         }
     }
 };
@@ -27,6 +29,8 @@ struct Statement::Impl {
     ~Impl() {
         if (stmt) {
             sqlite3_finalize(stmt);
+            // Coverage Fix (remove the '//' from below on dedicated branch):
+            // stmt = nullptr;
         }
     }
 };

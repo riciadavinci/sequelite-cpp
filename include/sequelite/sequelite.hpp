@@ -46,8 +46,11 @@ public:
     Statement(Statement&&) noexcept;
     Statement& operator=(Statement&&) noexcept;
 
+    explicit operator bool() const;
+
     // Public methods:
     [[nodiscard]] BindResult bind(int index, int data);
+    [[nodiscard]] BindResult bind(int index, int64_t data);
     [[nodiscard]] BindResult bind(int index, bool data);
     [[nodiscard]] BindResult bind(int index, double data);
     [[nodiscard]] BindResult bind(int index, const std::string& data, OwnershipType ownership = OwnershipType::Transient);

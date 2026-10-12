@@ -36,7 +36,7 @@ endif()
 
 add_library(sequelite-cpp STATIC 
     src/database.cpp 
-    # src/statement.cpp
+    src/statement.cpp
     src/impl.hpp
     include/sequelite/sequelite.hpp
     include/sequelite/types.hpp
