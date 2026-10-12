@@ -115,8 +115,7 @@ BindResult Statement::bind_null(int index) {
 
 
 StepResult Statement::step() const {
-    // TODO: Fix this guard
-    if (!m_impl->stmt) { return StepResult::fail("Statement handle is null"); }
+    if ((!m_impl) || (!m_impl->stmt)) { return StepResult::fail("Statement handle is null or Statement is moved-from"); }
 
     int res = sqlite3_step(m_impl->stmt);
     switch (res) {
