@@ -211,4 +211,139 @@ TEST_F(StatementBindingTest, NullBindingIndexTooLarge) {
     EXPECT_FALSE(stmt->bind_null(2).ok());
 }
 
+
+// ============================================================
+// === Tests for Execution, Stepping, and Column Extraction ===
+
+class StatementExecutionAndColumnTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        auto db_opt = Database::create(":memory:");
+        ASSERT_TRUE(db_opt);
+        ASSERT_TRUE(*db_opt);
+        db = std::move(*db_opt);
+
+        auto result = db->execute(
+            "CREATE TABLE users ("
+            "  id INTEGER PRIMARY KEY,"
+            "  age INT,"
+            "  salary BIGINT,"
+            "  active INT,"
+            "  score REAL,"
+            "  nickname TEXT"
+            ");"
+            "INSERT INTO users (id, age, salary, active, score, nickname) VALUES (1, 30, 5000000, 1, 98.5, 'Alice');"
+            "INSERT INTO users (id, age, salary, active, score, nickname) VALUES (2, NULL, NULL, 0, NULL, NULL);"
+        );
+        ASSERT_TRUE(result.ok());
+    }
+
+    std::optional<Database> db;
+};
+
+
+// Stepping Tests:
+
+TEST_F(StatementExecutionAndColumnTest, StepRowAvailable) {
+    auto stmt = Statement::create(*db, "SELECT age, nickname FROM users WHERE id = 1;");
+    ASSERT_TRUE(stmt);
+
+    auto step_res = stmt->step();
+    EXPECT_TRUE(step_res.is_row());
+}
+
+TEST_F(StatementExecutionAndColumnTest, StepExecutionDone) {
+    auto stmt = Statement::create(*db, "SELECT age, nickname FROM users WHERE id = 999;");
+    ASSERT_TRUE(stmt);
+
+    auto step_res = stmt->step();
+    EXPECT_TRUE(step_res.is_done());
+}
+
+TEST_F(StatementExecutionAndColumnTest, StepRuntimeErrorState) {
+    auto stmt = Statement::create(*db, "INSERT INTO users (id) VALUES (1);");
+    ASSERT_TRUE(stmt);
+
+    auto step_res = stmt->step();
+    EXPECT_TRUE(step_res.is_error());
+}
+
+
+
+// Reset & Clear Bindings Tests:
+
+TEST_F(StatementExecutionAndColumnTest, StatementResetSuccess) {
+    auto stmt = Statement::create(*db, "SELECT id FROM users ORDER BY id;");
+    ASSERT_TRUE(stmt);
+
+    // Step First Row:
+    ASSERT_TRUE(stmt->step().is_row());
+    EXPECT_EQ(stmt->column_int(0), 1);
+
+    // Resetting statement to allow re-stepping from the beginning
+    auto reset_res = stmt->reset();
+    EXPECT_TRUE(reset_res.ok());
+
+    // Re-step and verify we get the same row again:
+    ASSERT_TRUE(stmt->step().is_row());
+    EXPECT_EQ(stmt->column_int(0), 1);    
+}
+
+
+TEST_F(StatementExecutionAndColumnTest, StatementClearBindingsSuccess) {
+    auto stmt = Statement::create(*db, "SELECT * FROM users WHERE id = ?;");
+    ASSERT_TRUE(stmt);
+    EXPECT_TRUE(stmt->bind(1, static_cast<int>(1)).ok());
+
+    auto clear_res = stmt->clear_bindings();
+    EXPECT_TRUE(clear_res.ok());
+}
+
+
+// Column Extraction & Template Helpers Tests
+
+TEST_F(StatementExecutionAndColumnTest, ExplicitTypeGettersAndTemplates) {
+    auto stmt = Statement::create(*db, "SELECT id, age, salary, active, score, nickname FROM users WHERE id = 1;");
+    ASSERT_TRUE(stmt);
+
+    ASSERT_TRUE(stmt->step().is_row());
+
+    // 1. Explicit Type Getters (exact data fidelity check)
+    EXPECT_EQ(stmt->column_int(0), 1);
+    EXPECT_EQ(stmt->column_int(1), 30);
+    EXPECT_EQ(stmt->column_int64(2), 5000000LL);
+    EXPECT_EQ(stmt->column_bool(3), true);
+    EXPECT_DOUBLE_EQ(*(stmt->column_double(4)), 98.5);
+    EXPECT_EQ(stmt->column_text(5), "Alice");
+
+
+    // 2. Template Specialization Tests (delegation check)
+    EXPECT_EQ(stmt->column<int>(0), 1);
+    EXPECT_EQ(stmt->column<int>(1), 30);
+    EXPECT_EQ(stmt->column<int64_t>(2), 5000000LL);
+    EXPECT_EQ(stmt->column<bool>(3), true);
+    EXPECT_DOUBLE_EQ(*(stmt->column<double>(4)), 98.5);
+    EXPECT_EQ(stmt->column<std::string>(5), "Alice");
+}
+
+TEST_F(StatementExecutionAndColumnTest, NullValueHandling) {
+    auto stmt = Statement::create(*db, "SELECT age, salary, score, nickname FROM users WHERE id = 2;");
+    ASSERT_TRUE(stmt);
+
+    ASSERT_TRUE(stmt->step().is_row());
+
+    // Verify NULL columns safely return std::nullopt instead of crashing
+    EXPECT_FALSE(stmt->column_int(1).has_value());
+    EXPECT_FALSE(stmt->column_int64(2).has_value());
+    EXPECT_FALSE(stmt->column_double(4).has_value());
+    EXPECT_FALSE(stmt->column_text(5).has_value());
+
+
+    // 2. Template Specialization Tests (delegation check)
+    EXPECT_FALSE(stmt->column<int>(1).has_value());
+    EXPECT_FALSE(stmt->column<int64_t>(2).has_value());
+    EXPECT_FALSE(stmt->column<double>(4).has_value());
+    EXPECT_FALSE(stmt->column<std::string>(5).has_value());
+}
+
 }; // namespace sequelite::testing
