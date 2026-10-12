@@ -21,9 +21,6 @@ std::optional<Database> Database::create(std::string_view filename) {
     auto impl = std::make_unique<Impl>();
     int rc = sqlite3_open(filename.data(), &impl->db);
     if (rc != SQLITE_OK) {
-        if (impl->db) {
-            sqlite3_close(impl->db);
-        }
         return std::nullopt;
     }
 
