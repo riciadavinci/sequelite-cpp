@@ -62,6 +62,19 @@ TEST_F(StatementCreationTest, InvalidSqlQueryFailure) {
     EXPECT_FALSE(stmt_opt);
 }
 
+TEST(StatementCreationTestEdgeCase, MovedDatabaseStatementCreation) {
+    auto db_opt = Database::create(":memory:");
+    ASSERT_TRUE(db_opt);
+
+    Database db(std::move(*db_opt));
+    Database moved_to_db(std::move(db));
+    ASSERT_FALSE(db);
+    ASSERT_TRUE(moved_to_db);
+
+    auto stmt_opt = Statement::create(db, "CREATE TABLE test (id INT);");
+    EXPECT_FALSE(stmt_opt);
+}
+
 // =====================================
 // === Tests for Statement Semantics ===
 
