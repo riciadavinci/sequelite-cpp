@@ -9,7 +9,7 @@ Database::Database(Database&&) noexcept = default;
 Database& Database::operator=(Database&&) noexcept = default;
 
 Database::operator bool() const {
-    return m_impl && (m_impl->db != nullptr);
+    return (m_impl != nullptr);
 }
 
 // sequelite::Database factory:

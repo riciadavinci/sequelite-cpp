@@ -27,7 +27,7 @@ Statement::Statement(Statement&&) noexcept = default;
 Statement& Statement::operator=(Statement&&) noexcept = default;
 
 Statement::operator bool() const {
-    return m_impl && (m_impl->stmt != nullptr);
+    return (m_impl != nullptr);
 }
 
 
