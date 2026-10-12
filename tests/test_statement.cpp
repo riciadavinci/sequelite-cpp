@@ -333,17 +333,37 @@ TEST_F(StatementExecutionAndColumnTest, NullValueHandling) {
     ASSERT_TRUE(stmt->step().is_row());
 
     // Verify NULL columns safely return std::nullopt instead of crashing
-    EXPECT_FALSE(stmt->column_int(1).has_value());
-    EXPECT_FALSE(stmt->column_int64(2).has_value());
-    EXPECT_FALSE(stmt->column_double(4).has_value());
-    EXPECT_FALSE(stmt->column_text(5).has_value());
+    EXPECT_FALSE(stmt->column_int(0).has_value());
+    EXPECT_FALSE(stmt->column_int64(1).has_value());
+    EXPECT_FALSE(stmt->column_double(2).has_value());
+    EXPECT_FALSE(stmt->column_text(3).has_value());
 
 
-    // 2. Template Specialization Tests (delegation check)
-    EXPECT_FALSE(stmt->column<int>(1).has_value());
-    EXPECT_FALSE(stmt->column<int64_t>(2).has_value());
-    EXPECT_FALSE(stmt->column<double>(4).has_value());
-    EXPECT_FALSE(stmt->column<std::string>(5).has_value());
+    // Verify NULL columns safely return std::nullopt instead of crashing
+    EXPECT_FALSE(stmt->column<int>(0).has_value());
+    EXPECT_FALSE(stmt->column<int64_t>(1).has_value());
+    EXPECT_FALSE(stmt->column<double>(2).has_value());
+    EXPECT_FALSE(stmt->column<std::string>(3).has_value());
+}
+
+TEST_F(StatementExecutionAndColumnTest, NullStatementColumnExtractionFailure) {
+    auto stmt = Statement::create(*db, "SELECT age, salary, active, score, nickname FROM users WHERE id = 1;");
+    ASSERT_TRUE(stmt);
+    ASSERT_TRUE(stmt->step().is_row());
+
+    Statement moved_to_stmt(std::move(*stmt));
+
+    EXPECT_FALSE(stmt->column_int(0).has_value());
+    EXPECT_FALSE(stmt->column_int64(1).has_value());
+    EXPECT_FALSE(stmt->column_bool(2).has_value());
+    EXPECT_FALSE(stmt->column_double(3).has_value());
+    EXPECT_FALSE(stmt->column_text(4).has_value());
+
+    EXPECT_FALSE(stmt->column<int>(0).has_value());
+    EXPECT_FALSE(stmt->column<int64_t>(1).has_value());
+    EXPECT_FALSE(stmt->column<bool>(2).has_value());
+    EXPECT_FALSE(stmt->column<double>(3).has_value());
+    EXPECT_FALSE(stmt->column<std::string>(4).has_value());
 }
 
 }; // namespace sequelite::testing

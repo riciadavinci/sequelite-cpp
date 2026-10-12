@@ -152,21 +152,30 @@ StatementResult Statement::clear_bindings() const {
 }
 
 std::optional<int> Statement::column_int(int index) const {
-    if (!(m_impl->stmt) || (sqlite3_column_type(m_impl->stmt, index) == SQLITE_NULL)) {
+    if ((!m_impl) || (!m_impl->stmt)) {
+        return std::nullopt;
+    }
+    if (sqlite3_column_type(m_impl->stmt, index) == SQLITE_NULL) {
         return std::nullopt;
     }
     return sqlite3_column_int(m_impl->stmt, index);
 }
 
 std::optional<int64_t> Statement::column_int64(int index) const {
-    if (!(m_impl->stmt) || (sqlite3_column_type(m_impl->stmt, index) == SQLITE_NULL)) {
+    if ((!m_impl) || (!m_impl->stmt)) {
+        return std::nullopt;
+    }
+    if (sqlite3_column_type(m_impl->stmt, index) == SQLITE_NULL) {
         return std::nullopt;
     }
     return static_cast<int64_t>(sqlite3_column_int64(m_impl->stmt, index));
 }
 
 std::optional<double> Statement::column_double(int index) const {
-    if (!(m_impl->stmt) || (sqlite3_column_type(m_impl->stmt, index) == SQLITE_NULL)) {
+    if ((!m_impl) || (!m_impl->stmt)) {
+        return std::nullopt;
+    }
+    if (sqlite3_column_type(m_impl->stmt, index) == SQLITE_NULL) {
         return std::nullopt;
     }
     return sqlite3_column_double(m_impl->stmt, index);
@@ -179,7 +188,10 @@ std::optional<bool> Statement::column_bool(int index) const {
 }
 
 std::optional<std::string> Statement::column_text(int index) const {
-    if (!(m_impl->stmt) || (sqlite3_column_type(m_impl->stmt, index) == SQLITE_NULL)) {
+    if ((!m_impl) || (!m_impl->stmt)) {
+        return std::nullopt;
+    }
+    if (sqlite3_column_type(m_impl->stmt, index) == SQLITE_NULL) {
         return std::nullopt;
     }
 
