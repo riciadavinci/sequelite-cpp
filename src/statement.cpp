@@ -54,7 +54,7 @@ std::optional<Statement> Statement::create(Database& db, std::string_view sql_qu
 BindResult Statement::bind(int index, int data) {
     if (index <= 0) { return BindResult::fail("Index value must be > 0"); }
     if (!m_impl->db) { return BindResult::fail("Database handle is null"); }
-    if (!m_impl->stmt) { return BindResult::fail("Statement handle is null"); }
+    if ((!m_impl) || (!m_impl->stmt)) { return BindResult::fail("Statement handle is null or Statement is moved-from"); }
     if (sqlite3_bind_int(m_impl->stmt, index, data) != SQLITE_OK) {
         return BindResult::fail(sqlite3_errmsg(m_impl->db));
     }
@@ -64,7 +64,7 @@ BindResult Statement::bind(int index, int data) {
 BindResult Statement::bind(int index, int64_t data) {
     if (index <= 0) { return BindResult::fail("Index value must be > 0"); }
     if (!m_impl->db) { return BindResult::fail("Database handle is null"); }
-    if (!m_impl->stmt) { return BindResult::fail("Statement handle is null"); }
+    if ((!m_impl) || (!m_impl->stmt)) { return BindResult::fail("Statement handle is null or Statement is moved-from"); }
     if (sqlite3_bind_int64(m_impl->stmt, index, data) != SQLITE_OK) {
         return BindResult::fail(sqlite3_errmsg(m_impl->db));
     }
@@ -74,7 +74,7 @@ BindResult Statement::bind(int index, int64_t data) {
 BindResult Statement::bind(int index, bool data) {
     if (index <= 0) { return BindResult::fail("Index value must be > 0"); }
     if (!m_impl->db) { return BindResult::fail("Database handle is null"); }
-    if (!m_impl->stmt) { return BindResult::fail("Statement handle is null"); }
+    if ((!m_impl) || (!m_impl->stmt)) { return BindResult::fail("Statement handle is null or Statement is moved-from"); }
     int bool_data = data ? 1 : 0;
     if (sqlite3_bind_int(m_impl->stmt, index, bool_data) != SQLITE_OK) {
         return BindResult::fail(sqlite3_errmsg(m_impl->db));
@@ -85,7 +85,7 @@ BindResult Statement::bind(int index, bool data) {
 BindResult Statement::bind(int index, double data) {
     if (index <= 0) { return BindResult::fail("Index value must be > 0"); }
     if (!m_impl->db) { return BindResult::fail("Database handle is null"); }
-    if (!m_impl->stmt) { return BindResult::fail("Statement handle is null"); }
+    if ((!m_impl) || (!m_impl->stmt)) { return BindResult::fail("Statement handle is null or Statement is moved-from"); }
     if (sqlite3_bind_double(m_impl->stmt, index, data) != SQLITE_OK) {
         return BindResult::fail(sqlite3_errmsg(m_impl->db));
     }
@@ -95,7 +95,7 @@ BindResult Statement::bind(int index, double data) {
 BindResult Statement::bind(int index, const std::string& data, OwnershipType ownership) {
     if (index <= 0) { return BindResult::fail("Index value must be > 0"); }
     if (!m_impl->db) { return BindResult::fail("Database handle is null"); }
-    if (!m_impl->stmt) { return BindResult::fail("Statement handle is null"); }
+    if ((!m_impl) || (!m_impl->stmt)) { return BindResult::fail("Statement handle is null or Statement is moved-from"); }
     auto ownership_type = internal::resolve_ownership(ownership);
     if (sqlite3_bind_text(m_impl->stmt, index, data.c_str(), -1, ownership_type) != SQLITE_OK) {
         return BindResult::fail(sqlite3_errmsg(m_impl->db));
@@ -106,7 +106,7 @@ BindResult Statement::bind(int index, const std::string& data, OwnershipType own
 BindResult Statement::bind_null(int index) {
     if (index <= 0) { return BindResult::fail("Index value must be > 0"); }
     if (!m_impl->db) { return BindResult::fail("Database handle is null"); }
-    if (!m_impl->stmt) { return BindResult::fail("Statement handle is null"); }
+    if ((!m_impl) || (!m_impl->stmt)) { return BindResult::fail("Statement handle is null or Statement is moved-from"); }
     if (sqlite3_bind_null(m_impl->stmt, index) != SQLITE_OK) {
         return BindResult::fail(sqlite3_errmsg(m_impl->db));
     }
