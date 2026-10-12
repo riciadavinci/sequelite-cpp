@@ -328,6 +328,18 @@ TEST_F(StatementExecutionAndColumnTest, StatementClearBindingsSuccess) {
 }
 
 
+TEST_F(StatementExecutionAndColumnTest, NullStatementClearBindingsFailure) {
+    auto stmt = Statement::create(*db, "SELECT * FROM users WHERE id = ?;");
+    ASSERT_TRUE(stmt);
+    EXPECT_TRUE(stmt->bind(1, static_cast<int>(1)).ok());
+
+    Statement moved_to_stmt(std::move(*stmt));
+
+    auto clear_res = stmt->clear_bindings();
+    EXPECT_FALSE(clear_res.ok());
+}
+
+
 // Column Extraction & Template Helpers Tests
 
 TEST_F(StatementExecutionAndColumnTest, ExplicitTypeGettersAndTemplates) {
