@@ -142,6 +142,8 @@ TEST(DatabaseExecutionTest, MalformedSqlErrorHandling) {
     EXPECT_FALSE(result.message.empty());
 }
 
+// Skipping this test for Clang Compiler (Debug + Clang-Tidy Static Analysis)
+#ifndef __clang_analyzer__
 TEST(DatabaseExecutionTest, NullDatabaseHandleFailure) {
     auto db_opt = Database::create(":memory:");
     ASSERT_TRUE(db_opt.has_value());
@@ -152,10 +154,10 @@ TEST(DatabaseExecutionTest, NullDatabaseHandleFailure) {
     Database db_moved_to(std::move(db));
     ASSERT_TRUE(db_moved_to);
 
-    Database* db_ptr = &db;
-    auto result = db_ptr->execute("CREATE TABLE test (id INT);");
+    auto result = db.execute("CREATE TABLE test (id INT);");
     EXPECT_FALSE(result.ok());
     EXPECT_FALSE(result.message.empty());
 }
+#endif
 
 }; // namespace sequelite::testing
