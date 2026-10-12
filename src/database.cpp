@@ -31,12 +31,10 @@ std::optional<Database> Database::create(std::string_view filename) {
 }
 
 DatabaseResult Database::execute(std::string_view sql_query) {
-    if (!m_impl) {
-        return DatabaseResult::fail("Error: Cannot execute query on a moved-from database");
+    if ((!m_impl) || (!m_impl->db)) { 
+        return DatabaseResult::fail("Error: Database handle is null or Database is moved-from"); 
     }
-    if (!m_impl->db) {
-        return DatabaseResult::fail("Error: Cannot execute query on a database handle which is null");
-    }
+    
     if (sql_query.empty()) {
         return DatabaseResult::fail("Error: Provided SQL query is empty");
     }
