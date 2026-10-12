@@ -142,4 +142,19 @@ TEST(DatabaseExecutionTest, MalformedSqlErrorHandling) {
     EXPECT_FALSE(result.message.empty());
 }
 
+TEST(DatabaseExecutionTest, NullDatabaseHandleFailure) {
+    auto db_opt = Database::create(":memory:");
+    ASSERT_TRUE(db_opt.has_value());
+    
+    Database db = std::move(*db_opt);
+    ASSERT_TRUE(db);
+    
+    Database db_moved_to(std::move(db));
+    ASSERT_TRUE(db_moved_to);
+
+    auto result = db.execute("CREATE TABLE test (id INT);");
+    EXPECT_FALSE(result.ok());
+    EXPECT_FALSE(result.message.empty());
+}
+
 }; // namespace sequelite::testing
