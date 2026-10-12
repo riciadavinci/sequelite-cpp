@@ -152,14 +152,8 @@ TEST(DatabaseExecutionTest, NullDatabaseHandleFailure) {
     Database db_moved_to(std::move(db));
     ASSERT_TRUE(db_moved_to);
 
-    // === For Supressing Clang 'use after move' warning ===
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wuse-after-move"
-    //
-    auto result = db.execute("CREATE TABLE test (id INT);");
-    // 
-    #pragma clang diagnostic pop
-    // === For Supressing Clang 'use after move' warning ===
+    Database* db_ptr = &db;
+    auto result = db_ptr->execute("CREATE TABLE test (id INT);");
     EXPECT_FALSE(result.ok());
     EXPECT_FALSE(result.message.empty());
 }
