@@ -289,6 +289,21 @@ TEST_F(StatementExecutionAndColumnTest, StatementResetSuccess) {
     EXPECT_EQ(stmt->column_int(0), 1);    
 }
 
+TEST_F(StatementExecutionAndColumnTest, ResetAfterRuntimeError) {
+    auto stmt = Statement::create(*db, "INSERT INTO users (id, active) VALUES (3, 0);");
+    ASSERT_TRUE(stmt);
+
+    // First execution succeeds
+    auto step_res = stmt->step();
+    ASSERT_TRUE(step_res.is_row() || step_res.is_done());
+
+    // Second execution triggers primary key constraint violation error
+    ASSERT_TRUE(stmt->step().is_error());
+
+    // Resetting the errored statement should exercise the error return path (sqlite3_reset(sqlite3_stmt*) != SQLITE_OK)
+    auto reset_res = stmt->reset();
+    EXPECT_FALSE(reset_res.ok());
+}
 
 TEST_F(StatementExecutionAndColumnTest, StatementClearBindingsSuccess) {
     auto stmt = Statement::create(*db, "SELECT * FROM users WHERE id = ?;");

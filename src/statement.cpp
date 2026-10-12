@@ -130,7 +130,7 @@ StepResult Statement::step() const {
 }
 
 StatementResult Statement::reset() const {
-    if (!m_impl->stmt) { return StatementResult::fail("Statement handle is null"); }
+    if ((!m_impl) || (!m_impl->stmt)) { return StatementResult::fail("Statement handle is null or Statement is moved-from"); }
 
     int res = sqlite3_reset(m_impl->stmt);
     if (res != SQLITE_OK) {
