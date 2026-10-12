@@ -62,6 +62,27 @@ TEST_F(StatementCreationTest, InvalidSqlQueryFailure) {
     EXPECT_FALSE(stmt_opt);
 }
 
+TEST(StatementCreationTestEdgeCase, MovedDatabaseStatementCreation) {
+    auto db_opt = Database::create(":memory:");
+    ASSERT_TRUE(db_opt);
+
+    Database db(std::move(*db_opt));
+    Database moved_to_db(std::move(db));
+    ASSERT_FALSE(db);
+    ASSERT_TRUE(moved_to_db);
+
+    auto stmt_opt = Statement::create(db, "CREATE TABLE test (id INT);");
+    EXPECT_FALSE(stmt_opt);
+}
+
+TEST(StatementCreationTestEdgeCase, InvalidSqlQueryFailure) {
+    auto db_opt = Database::create(":memory:");
+    ASSERT_TRUE(db_opt);
+
+    auto stmt_opt = Statement::create(*db_opt, "INVALID DATABASE QUERY;");
+    EXPECT_FALSE(stmt_opt);
+}
+
 // =====================================
 // === Tests for Statement Semantics ===
 
@@ -289,6 +310,21 @@ TEST_F(StatementExecutionAndColumnTest, StatementResetSuccess) {
     EXPECT_EQ(stmt->column_int(0), 1);    
 }
 
+TEST_F(StatementExecutionAndColumnTest, ResetAfterRuntimeError) {
+    auto stmt = Statement::create(*db, "INSERT INTO users (id, active) VALUES (3, 0);");
+    ASSERT_TRUE(stmt);
+
+    // First execution succeeds
+    auto step_res = stmt->step();
+    ASSERT_TRUE(step_res.is_row() || step_res.is_done());
+
+    // Second execution triggers primary key constraint violation error
+    ASSERT_TRUE(stmt->step().is_error());
+
+    // Resetting the errored statement should exercise the error return path (sqlite3_reset(sqlite3_stmt*) != SQLITE_OK)
+    auto reset_res = stmt->reset();
+    EXPECT_FALSE(reset_res.ok());
+}
 
 TEST_F(StatementExecutionAndColumnTest, StatementClearBindingsSuccess) {
     auto stmt = Statement::create(*db, "SELECT * FROM users WHERE id = ?;");
@@ -297,6 +333,18 @@ TEST_F(StatementExecutionAndColumnTest, StatementClearBindingsSuccess) {
 
     auto clear_res = stmt->clear_bindings();
     EXPECT_TRUE(clear_res.ok());
+}
+
+
+TEST_F(StatementExecutionAndColumnTest, NullStatementClearBindingsFailure) {
+    auto stmt = Statement::create(*db, "SELECT * FROM users WHERE id = ?;");
+    ASSERT_TRUE(stmt);
+    EXPECT_TRUE(stmt->bind(1, static_cast<int>(1)).ok());
+
+    Statement moved_to_stmt(std::move(*stmt));
+
+    auto clear_res = stmt->clear_bindings();
+    EXPECT_FALSE(clear_res.ok());
 }
 
 
@@ -333,17 +381,37 @@ TEST_F(StatementExecutionAndColumnTest, NullValueHandling) {
     ASSERT_TRUE(stmt->step().is_row());
 
     // Verify NULL columns safely return std::nullopt instead of crashing
-    EXPECT_FALSE(stmt->column_int(1).has_value());
-    EXPECT_FALSE(stmt->column_int64(2).has_value());
-    EXPECT_FALSE(stmt->column_double(4).has_value());
-    EXPECT_FALSE(stmt->column_text(5).has_value());
+    EXPECT_FALSE(stmt->column_int(0).has_value());
+    EXPECT_FALSE(stmt->column_int64(1).has_value());
+    EXPECT_FALSE(stmt->column_double(2).has_value());
+    EXPECT_FALSE(stmt->column_text(3).has_value());
 
 
-    // 2. Template Specialization Tests (delegation check)
-    EXPECT_FALSE(stmt->column<int>(1).has_value());
-    EXPECT_FALSE(stmt->column<int64_t>(2).has_value());
-    EXPECT_FALSE(stmt->column<double>(4).has_value());
-    EXPECT_FALSE(stmt->column<std::string>(5).has_value());
+    // Verify NULL columns safely return std::nullopt instead of crashing
+    EXPECT_FALSE(stmt->column<int>(0).has_value());
+    EXPECT_FALSE(stmt->column<int64_t>(1).has_value());
+    EXPECT_FALSE(stmt->column<double>(2).has_value());
+    EXPECT_FALSE(stmt->column<std::string>(3).has_value());
+}
+
+TEST_F(StatementExecutionAndColumnTest, NullStatementColumnExtractionFailure) {
+    auto stmt = Statement::create(*db, "SELECT age, salary, active, score, nickname FROM users WHERE id = 1;");
+    ASSERT_TRUE(stmt);
+    ASSERT_TRUE(stmt->step().is_row());
+
+    Statement moved_to_stmt(std::move(*stmt));
+
+    EXPECT_FALSE(stmt->column_int(0).has_value());
+    EXPECT_FALSE(stmt->column_int64(1).has_value());
+    EXPECT_FALSE(stmt->column_bool(2).has_value());
+    EXPECT_FALSE(stmt->column_double(3).has_value());
+    EXPECT_FALSE(stmt->column_text(4).has_value());
+
+    EXPECT_FALSE(stmt->column<int>(0).has_value());
+    EXPECT_FALSE(stmt->column<int64_t>(1).has_value());
+    EXPECT_FALSE(stmt->column<bool>(2).has_value());
+    EXPECT_FALSE(stmt->column<double>(3).has_value());
+    EXPECT_FALSE(stmt->column<std::string>(4).has_value());
 }
 
 }; // namespace sequelite::testing

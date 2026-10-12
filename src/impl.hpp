@@ -13,11 +13,13 @@ struct Database::Impl {
     sqlite3* db = nullptr;
 
     ~Impl() {
-        if (db) {
-            sqlite3_close(db);
-            // Coverage Fix (remove the '//' from below on dedicated branch):
-            // db = nullptr;
-        }
+        // NOTE: Removed the `if (db) {}` guard before calling `sqlite3_close(sqlite3*)` since
+        //       SQLite 3 C API Officially States:
+        //       EVIDENCE-OF: R-63257-11740 Calling sqlite3_close() or sqlite3_close_v2()
+        //       with a NULL pointer argument is a harmless no-op.
+        //       This will improve code coverage.
+        sqlite3_close(db);
+        db = nullptr;
     }
 };
 
@@ -29,8 +31,7 @@ struct Statement::Impl {
     ~Impl() {
         if (stmt) {
             sqlite3_finalize(stmt);
-            // Coverage Fix (remove the '//' from below on dedicated branch):
-            // stmt = nullptr;
+            stmt = nullptr;
         }
     }
 };

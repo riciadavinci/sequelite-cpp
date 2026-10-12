@@ -9,7 +9,7 @@ Database::Database(Database&&) noexcept = default;
 Database& Database::operator=(Database&&) noexcept = default;
 
 Database::operator bool() const {
-    return m_impl && (m_impl->db != nullptr);
+    return (m_impl != nullptr);
 }
 
 // sequelite::Database factory:
@@ -21,9 +21,6 @@ std::optional<Database> Database::create(std::string_view filename) {
     auto impl = std::make_unique<Impl>();
     int rc = sqlite3_open(filename.data(), &impl->db);
     if (rc != SQLITE_OK) {
-        if (impl->db) {
-            sqlite3_close(impl->db);
-        }
         return std::nullopt;
     }
 
@@ -31,11 +28,12 @@ std::optional<Database> Database::create(std::string_view filename) {
 }
 
 DatabaseResult Database::execute(std::string_view sql_query) {
-    if (!m_impl->db) {
-        return DatabaseResult::fail("Database handle is null");
+    if (!m_impl) { 
+        return DatabaseResult::fail("Error: Database handle is null or Database is moved-from"); 
     }
+
     if (sql_query.empty()) {
-        return DatabaseResult::fail("Sql query provided is empty");
+        return DatabaseResult::fail("Error: Provided SQL query is empty");
     }
 
     char* error_msg {nullptr};
