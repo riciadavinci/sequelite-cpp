@@ -75,6 +75,14 @@ TEST(StatementCreationTestEdgeCase, MovedDatabaseStatementCreation) {
     EXPECT_FALSE(stmt_opt);
 }
 
+TEST(StatementCreationTestEdgeCase, InvalidSqlQueryFailure) {
+    auto db_opt = Database::create(":memory:");
+    ASSERT_TRUE(db_opt);
+
+    auto stmt_opt = Statement::create(*db_opt, "INVALID DATABASE QUERY;");
+    EXPECT_FALSE(stmt_opt);
+}
+
 // =====================================
 // === Tests for Statement Semantics ===
 
